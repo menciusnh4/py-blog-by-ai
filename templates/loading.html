@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 极客博客 - 启动中</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        .loading-screen {
+            text-align: center;
+            color: white;
+        }
+        
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .title {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+        
+        .loading-bar {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin: 30px auto;
+            overflow: hidden;
+        }
+        
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+            width: 0%;
+            border-radius: 4px;
+            animation: loading 3s ease-in-out forwards;
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            20% { width: 20%; }
+            40% { width: 45%; }
+            60% { width: 70%; }
+            80% { width: 90%; }
+            100% { width: 100%; }
+        }
+        
+        .loading-text {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 1s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .feature:nth-child(1) { animation-delay: 0.5s; }
+        .feature:nth-child(2) { animation-delay: 1s; }
+        .feature:nth-child(3) { animation-delay: 1.5s; }
+        .feature:nth-child(4) { animation-delay: 2s; }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .feature {
+            transform: translateY(20px);
+        }
+        
+        .emoji {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        .redirect-text {
+            margin-top: 30px;
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen">
+        <div class="logo">✨</div>
+        <div class="title">极客博客</div>
+        <div class="loading-text">正在加载炫酷功能...</div>
+        
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+        
+        <div class="features">
+            <div class="feature"><span class="emoji">🚀</span>赛博朋克风格</div>
+            <div class="feature"><span class="emoji">✨</span>粒子动画效果</div>
+            <div class="feature"><span class="emoji">🎨</span>炫酷交互体验</div>
+            <div class="feature"><span class="emoji">🌙</span>暗黑模式支持</div>
+        </div>
+        
+        <div class="redirect-text" id="redirect-text">准备就绪，即将跳转...</div>
+    </div>
+
+    <script>
+        // 3秒后自动跳转到主页
+        setTimeout(() => {
+            document.getElementById('redirect-text').textContent = '正在跳转到主页...';
+            window.location.href = '/';
+        }, 3000);
+        
+        // 控制台彩蛋
+        console.log('%c🎉 欢迎访问极客博客！', 'font-size: 24px; color: #4ecdc4; font-weight: bold;');
+        console.log('%c✨ 快捷键提示：', 'font-size: 18px; color: #ff6b6b;');
+        console.log('%c- 上上下下左右左右BA (Konami彩蛋)', 'color: #45b7d1;');
+        console.log('%c- Alt+T 切换主题', 'color: #96ceb4;');
+        console.log('%c- Ctrl+S 保存文章', 'color: #ff9a9e;');
+        console.log('%c- 按任意字母键触发随机表情', 'color: #fecfef;');
+        
+        // 添加一些有趣的控制台交互
+        const secretCommands = {
+            'geek': () => console.log('%c🔐 极客模式已激活！', 'font-size: 20px; color: #00ff7f;'),
+            'blog': () => console.log('%c📝 博客系统运行正常！', 'font-size: 18px; color: #ffd700;'),
+            'awesome': () => {
+                console.log('%c🌟 你发现了隐藏的awesome命令！', 'font-size: 22px; color: #ff69b4;');
+                // 触发页面特效
+                document.body.style.animation = 'hue-rotate 2s linear infinite';
+            }
+        };
+        
+        // 监听控制台输入（简化版）
+        let commandBuffer = '';
+        document.addEventListener('keypress', (e) => {
+            commandBuffer += e.key.toLowerCase();
+            if (commandBuffer.length > 10) {
+                commandBuffer = commandBuffer.slice(-10);
+            }
+            
+            Object.keys(secretCommands).forEach(cmd => {
+                if (commandBuffer.includes(cmd)) {
+                    secretCommands[cmd]();
+                    commandBuffer = '';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

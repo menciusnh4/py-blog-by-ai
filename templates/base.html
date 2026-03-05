@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+
+
+    <meta charset="UTF-8">
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    <title>{% block title %}我的炫酷博客{% endblock %}</title>
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/effects.css') }}">
+
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dark_mode.css') }}">
+
+
+    <!-- 使用系统字体栈，避免Google Fonts外部请求 -->
+
+
+    <style>
+
+
+        body, h1, h2, h3, h4, h5, h6 {
+
+
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+
+            font-weight: 400;
+
+
+        }
+
+
+    </style>
+
+
+    
+
+
+    <!-- 避免暗黑模式闪烁的内联样式 -->
+
+    <script>
+
+        // 立即应用暗色模式，避免闪烁
+
+        (function() {
+
+            try {
+
+                if (localStorage.getItem('theme') === 'dark') {
+
+                    if (document.documentElement) {
+
+                        document.documentElement.classList.add('dark-mode');
+
+                    }
+
+                    if (document.body) {
+
+                        document.body.classList.add('dark-mode');
+
+                    }
+
+                }
+
+            } catch(e) {
+
+                console.error('初始化暗黑模式失败:', e);
+
+            }
+
+        })();
+
+    </script>
+
+    <style>
+
+
+        /* 如果有暗色模式，立即应用 - 完整版本 */
+
+
+        html.dark-mode {
+
+
+            background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+
+
+        }
+
+
+        html.dark-mode .header {
+
+
+            background: rgba(15, 23, 42, 0.95);
+
+
+            border-color: rgba(255, 255, 255, 0.1);
+
+
+        }
+
+
+        html.dark-mode .nav a {
+
+
+            color: #cbd5e1;
+
+
+        }
+
+
+        html.dark-mode .logo-text {
+
+
+            color: #4ecdc4;
+
+
+        }
+
+
+        html.dark-mode .hero {
+
+
+            background: rgba(15, 23, 42, 0.6);
+
+
+            color: #e2e8f0;
+
+
+        }
+
+
+        html.dark-mode .hero h2 {
+
+
+            color: #4ecdc4;
+
+
+        }
+
+
+        html.dark-mode .post-card {
+
+
+            background: rgba(30, 41, 59, 0.8);
+
+
+            border-color: rgba(255, 255, 255, 0.1);
+
+
+        }
+
+
+        html.dark-mode .post-card h3 a {
+
+
+            color: #f1f5f9;
+
+
+        }
+
+
+        html.dark-mode .post-meta span {
+
+
+            color: #cbd5e1;
+
+
+        }
+
+
+        html.dark-mode .post-excerpt {
+
+
+            color: #94a3b8;
+
+
+        }
+
+
+        html.dark-mode .post-content {
+
+
+            color: #f1f5f9;
+
+
+        }
+
+
+        html.dark-mode .form-container {
+
+
+            background: rgba(30, 41, 59, 0.8);
+
+
+            border-color: rgba(255, 255, 255, 0.1);
+
+
+        }
+
+
+        html.dark-mode .form-container h2 {
+
+
+            color: #4ecdc4;
+
+
+        }
+
+
+        html.dark-mode .form-group label {
+
+
+            color: #e2e8f0;
+
+
+        }
+
+
+        html.dark-mode .form-group input,
+
+
+        html.dark-mode .form-group textarea {
+
+
+            background: rgba(51, 65, 85, 0.5);
+
+
+            border-color: rgba(255, 255, 255, 0.1);
+
+
+            color: #f1f5f9;
+
+
+        }
+
+
+        html.dark-mode .btn {
+
+
+            background: rgba(78, 205, 196, 0.2);
+
+
+            color: #e2e8f0;
+
+
+            border-color: rgba(78, 205, 196, 0.3);
+
+
+        }
+
+
+        html.dark-mode .footer {
+
+
+            background: rgba(15, 23, 42, 0.9);
+
+
+            color: #94a3b8;
+
+
+        }
+
+
+        html.dark-mode h1, html.dark-mode h2, html.dark-mode h3 {
+
+
+            color: #4ecdc4;
+
+
+        }
+
+
+        html.dark-mode body, html.dark-mode div, html.dark-mode span, html.dark-mode p {
+
+
+            color: #e2e8f0;
+
+
+        }
+
+
+    </style>
+
+
+</head>
+
+
+<body>
+
+
+    <!-- 粒子背景容器 -->
+
+
+    <div class="particles-container" id="particles-js"></div>
+
+
+    
+
+
+    <header class="header">
+
+
+        <div class="container">
+
+
+            <h1 class="logo">
+
+
+                <span class="logo-icon">✨</span>
+
+
+                <span class="logo-text">极客博客</span>
+
+
+            </h1>
+
+
+            <nav class="nav">
+
+
+                <a href="{{ url_for('index') }}">🏠 首页</a>
+
+
+                {% if current_user %}
+
+
+                    <a href="{{ url_for('create_post') }}">➕ 创作</a>
+
+
+                    <div class="user-menu">
+                        <!-- 通知图标 -->
+                        <div class="notification-wrapper" style="position: relative; margin-right: 10px;">
+                            <span id="notification-icon" style="cursor: pointer; font-size: 1.2rem;">🔔</span>
+                            <span id="notification-badge" style="display: none; position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; padding: 2px 5px; font-size: 0.7rem; min-width: 15px; text-align: center;">0</span>
+                            
+                            <!-- 通知下拉列表 -->
+                            <div id="notification-dropdown" style="display: none; position: absolute; right: 0; top: 100%; width: 350px; max-height: 400px; overflow-y: auto; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px); border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 1000; margin-top: 10px; padding: 15px;">
+                                <h4 style="margin-bottom: 10px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">📬 我的通知</h4>
+                                <div id="notification-list">
+                                    <p style="color: rgba(255,255,255,0.6); text-align: center; padding: 20px;">加载中...</p>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <span class="user-info">
+
+
+                            👤 {{ current_user.username }}
+
+
+                        </span>
+
+
+                        <a href="{{ url_for('logout') }}">🚪 退出</a>
+
+
+                    </div>
+
+
+                {% else %}
+
+
+                    <a href="{{ url_for('login') }}">🔐 登录</a>
+
+
+                    <a href="{{ url_for('register') }}">👥 注册</a>
+
+
+                {% endif %}
+
+
+                <a href="#" id="theme-toggle">🌙 暗黑</a>
+
+
+            </nav>
+
+
+        </div>
+
+
+    </header>
+
+
+
+
+
+    <main class="main">
+
+
+        <div class="container">
+
+
+            {% with messages = get_flashed_messages() %}
+
+
+                {% if messages %}
+
+
+                    <div class="alerts">
+
+
+                        {% for message in messages %}
+
+
+                            <div class="alert alert-success">
+
+
+                                ✅ {{ message }}
+
+
+                            </div>
+
+
+                        {% endfor %}
+
+
+                    </div>
+
+
+                {% endif %}
+
+
+            {% endwith %}
+
+
+
+
+
+            {% block content %}{% endblock %}
+
+
+        </div>
+
+
+    </main>
+
+
+
+
+
+    <footer class="footer">
+
+
+        <div class="container">
+
+
+            <p>❤️ 用代码创造美 &copy; 2024 极客博客</p>
+
+
+        </div>
+
+
+    </footer>
+
+
+
+
+
+    <!-- 粒子JS�?-->
+
+
+    <script src="{{ url_for('static', filename='js/particles.min.js') }}"></script>
+
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+
+    <script>
+        // 初始化粒子背景
+        try {
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', {
+                    particles: {
+                        number: { value: 80, density: { enable: true, value_area: 800 } },
+                        color: { value: "#ffffff" },
+                        shape: { type: "circle" },
+                        opacity: { value: 0.5, random: true },
+                        size: { value: 3, random: true },
+                        line_linked: {
+                            enable: true,
+                            distance: 150,
+                            color: "#ffffff",
+                            opacity: 0.4,
+                            width: 1
+                        },
+                        move: {
+                            enable: true,
+                            speed: 2,
+                            direction: "none",
+                            random: true,
+                            straight: false,
+                            out_mode: "out",
+                            bounce: false
+                        }
+                    },
+                    interactivity: {
+                        detect_on: "canvas",
+                        events: {
+                            onhover: { enable: true, mode: "repulse" },
+                            onclick: { enable: true, mode: "push" },
+                            resize: true
+                        }
+                    },
+                    retina_detect: true
+                });
+            }
+        } catch (error) {
+            console.error('粒子背景初始化失败:', error);
+        }
+    </script>
+
+</body>
+
+
+</html>
+
+

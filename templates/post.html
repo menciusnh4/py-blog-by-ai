@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - 极客博客{% endblock %}
+
+{% block content %}
+<!-- 设置全局用户信息变量 -->
+<script>
+    window.currentUserId = {{ current_user.id if current_user else 'null' }};
+    window.isAdmin = {{ 'true' if current_user and current_user.is_admin else 'false' }};
+</script>
+
+<div class="post-detail">
+    <article class="post-full">
+        <header class="post-header">
+            <h1>{{ post.title }}</h1>
+            <div class="post-meta">
+                <span class="author">👤 {{ post.author_name or post.author }}</span>
+                <span class="date">📅 {{ post.created_at[:10] }}</span>
+                <span>👁️ {{ post.view_count or 0 }}</span>
+                <span>❤️ <span id="like-count">{{ post.like_count }}</span></span>
+            </div>
+        </header>
+        
+        <div class="post-content">
+            {{ post.content|safe }}
+        </div>
+        
+        <footer class="post-footer">
+            <div class="post-actions">
+                <button class="btn like-btn {% if post.has_liked %}liked{% endif %}" data-post-id="{{ post.id }}" {% if post.has_liked %}style="background: linear-gradient(45deg, #ff4757, #ff3742);"{% endif %}>
+                    ❤️ 点赞 (<span class="like-count">{{ post.like_count }}</span>)
+                </button>
+                <button class="btn" onclick="sharePost()">
+                    🔗 分享
+                </button>
+                
+                {% if current_user is not none %}
+                    {% set user_id = current_user.id %}
+                    {% if post.user_id is not none and post.user_id == user_id or current_user.is_admin %}
+                        <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn btn-secondary">
+                            ✏️ 编辑
+                        </a>
+                        <a href="{{ url_for('delete_post', post_id=post.id) }}" class="btn btn-danger" onclick="return confirm('确定要删除这篇超酷的文章吗？')">
+                            🗑️ 删除
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </footer>
+    </article>
+</div>
+
+<!-- 评论区 -->
+<div class="comments-section" id="comments">
+    <h3 class="comments-title">💬 评论 (<span id="comment-count">0</span>)</h3>
+    
+    {% if current_user %}
+    <!-- 评论输入框（仅登录用户可见） -->
+    <div class="comment-form-container">
+        <div class="comment-form">
+            <textarea id="comment-content" placeholder="写下你的评论...（至少 1 个字，最多 1000 字）" rows="4"></textarea>
+            <div class="comment-form-actions">
+                <button class="btn btn-submit-comment" onclick="submitComment({{ post.id }})">
+                    📝 发表评论
+                </button>
+                <span class="char-count"><span id="char-current">0</span>/1000</span>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- 未登录提示 -->
+    <div class="login-tip">
+        <p>🔐 请<a href="{{ url_for('login') }}">登录</a>后参与评论</p>
+    </div>
+    {% endif %}
+    
+    <!-- 评论列表 -->
+    <div class="comments-list" id="comments-list">
+        <!-- 评论将通过 JS 动态加载 -->
+    </div>
+</div>
+{% endblock %}

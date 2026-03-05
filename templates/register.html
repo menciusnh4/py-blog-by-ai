@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}用户注册 - 极客博客{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>👥 用户注册</h2>
+            <p>加入极客博客大家庭</p>
+        </div>
+        
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="username">👤 用户名</label>
+                <input type="text" id="username" name="username" required placeholder="请输入用户名（至少3个字符）" minlength="3">
+                <small style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">用户名将作为您的唯一标识</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">✉️ 邮箱（可选）</label>
+                <input type="email" id="email" name="email" placeholder="请输入邮箱地址">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">🔒 密码</label>
+                <input type="password" id="password" name="password" required placeholder="请输入密码（至少6个字符）" minlength="6">
+                <small style="color: rgba(255,255,255,0.6); font-size: 0.85rem;">密码至少需要6个字符</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm-password">🔒 确认密码</label>
+                <input type="password" id="confirm-password" name="confirm-password" required placeholder="请再次输入密码">
+            </div>
+            
+            <button type="submit" class="btn btn-primary auth-btn" id="register-btn">
+                👥 注册账号
+            </button>
+        </form>
+        
+        <div class="auth-footer">
+            <p>已有账号？<a href="{{ url_for('login') }}">立即登录</a></p>
+            <p><a href="{{ url_for('index') }}">◀ 返回首页</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+// 密码确认验证
+document.getElementById('register-btn').addEventListener('click', function(e) {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('两次输入的密码不一致！');
+        return;
+    }
+    
+    if (password.length < 6) {
+        e.preventDefault();
+        alert('密码长度至少6位！');
+        return;
+    }
+    
+    if (document.getElementById('username').value.length < 3) {
+        e.preventDefault();
+        alert('用户名至少3个字符！');
+        return;
+    }
+});
+</script>
+
+<style>
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+}
+
+.auth-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 25px;
+    padding: 40px;
+    backdrop-filter: blur(20px);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        inset 0 0 40px rgba(255, 255, 255, 0.05);
+    width: 100%;
+    max-width: 450px;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-header h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.auth-header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+}
+
+.auth-form {
+    margin-bottom: 25px;
+}
+
+.auth-form .form-group {
+    margin-bottom: 25px;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    font-size: 1rem;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #4ecdc4;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
+}
+
+.auth-form input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.auth-form small {
+    display: block;
+    margin-top: 8px;
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.auth-footer {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.auth-footer a {
+    color: #4ecdc4;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.auth-footer a:hover {
+    color: #ff6b6b;
+    text-decoration: underline;
+}
+
+.auth-footer p {
+    margin: 10px 0;
+}
+</style>
+{% endblock %}

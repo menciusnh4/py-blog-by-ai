@@ -1,0 +1,174 @@
+/* 暗色模式样式 - 使用高优先级选择器，不使用 !important */
+
+/* 主背景 */
+html.dark-mode body {
+    background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
+}
+
+/* 头部导航 */
+html.dark-mode .header {
+    background: rgba(15, 23, 42, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .nav a {
+    color: #cbd5e1;
+}
+
+html.dark-mode .nav a:hover {
+    color: #4ecdc4;
+}
+
+html.dark-mode .logo-text {
+    color: #4ecdc4;
+}
+
+/* Hero 区域 */
+html.dark-mode .hero {
+    background: rgba(15, 23, 42, 0.6);
+    color: #e2e8f0;
+}
+
+html.dark-mode .hero h2 {
+    color: #4ecdc4;
+}
+
+/* 文章卡片 */
+html.dark-mode .post-card {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .post-card h3 a {
+    color: #f1f5f9;
+}
+
+html.dark-mode .post-meta span {
+    color: #cbd5e1;
+}
+
+html.dark-mode .post-excerpt {
+    color: #94a3b8;
+}
+
+/* 文章详情 - 重点修复 */
+html.dark-mode .post-detail {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .post-detail h1,
+html.dark-mode .post-detail h2,
+html.dark-mode .post-detail h3 {
+    color: #4ecdc4;
+}
+
+html.dark-mode .post-header h1 {
+    background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: #4ecdc4;
+    background-clip: text;
+}
+
+html.dark-mode .post-meta {
+    color: rgba(255, 255, 255, 0.7);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .post-content {
+    color: #f1f5f9;
+}
+
+html.dark-mode .post-content p {
+    color: #e2e8f0;
+}
+
+html.dark-mode .post-content a {
+    color: #4ecdc4;
+}
+
+html.dark-mode .post-content img {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .post-footer {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 表单容器 */
+html.dark-mode .form-container {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .form-container h2 {
+    color: #4ecdc4;
+}
+
+html.dark-mode .form-group label {
+    color: #e2e8f0;
+}
+
+html.dark-mode .form-group input,
+html.dark-mode .form-group textarea {
+    background: rgba(51, 65, 85, 0.5);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+}
+
+/* 按钮 */
+html.dark-mode .btn {
+    background: rgba(78, 205, 196, 0.2);
+    color: #e2e8f0;
+    border-color: rgba(78, 205, 196, 0.3);
+}
+
+html.dark-mode .btn:hover {
+    background: rgba(78, 205, 196, 0.3);
+    color: #fff;
+}
+
+html.dark-mode .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .btn-danger {
+    background: rgba(255, 71, 87, 0.2);
+}
+
+/* 文章操作区 */
+html.dark-mode .post-actions a {
+    color: #cbd5e1;
+}
+
+/* 页脚 */
+html.dark-mode .footer {
+    background: rgba(15, 23, 42, 0.9);
+    color: #94a3b8;
+}
+
+/* 警告框 */
+html.dark-mode .alert {
+    background: rgba(78, 205, 196, 0.2);
+    border-color: rgba(78, 205, 196, 0.3);
+    color: #e2e8f0;
+}
+
+/* 所有标题 */
+html.dark-mode h1,
+html.dark-mode h2,
+html.dark-mode h3,
+html.dark-mode h4,
+html.dark-mode h5,
+html.dark-mode h6 {
+    color: #4ecdc4;
+}
+
+/* 所有文本内容 - 全局覆盖 */
+html.dark-mode body,
+html.dark-mode div,
+html.dark-mode span,
+html.dark-mode p,
+html.dark-mode a:not(.btn) {
+    color: #e2e8f0;
+}

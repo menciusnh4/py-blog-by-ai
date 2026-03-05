@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}首页 - 极客博客{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h2>🚀 欢迎来到极客空间</h2>
+    <p>在这里记录代码人生，分享技术干货，探索无限可能</p>
+    {% if current_user %}
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('create_post') }}" class="btn">
+                ✍️ 开始创作
+            </a>
+            <a href="#posts" class="btn btn-secondary">
+                🚀 浏览文章
+            </a>
+        </div>
+    {% else %}
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('login') }}" class="btn">
+                🔐 登录创作
+            </a>
+            <a href="{{ url_for('register') }}" class="btn btn-secondary">
+                👥 注册账号
+            </a>
+            <a href="#posts" class="btn">
+                🚀 浏览文章
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<div class="posts-grid" id="posts">
+    {% if posts %}
+        {% for post in posts %}
+        <article class="post-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                <h3><a href="{{ url_for('view_post', post_id=post.id) }}">{{ post.title }}</a></h3>
+                <span style="background: var(--primary-gradient); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                    HOT
+                </span>
+            </div>
+            <div class="post-meta">
+                <span class="author">👤 {{ post.author_name or post.author }}</span>
+                <span class="date">📅 {{ post.created_at[:10] }}</span>
+                <span>👁️ {{ post.view_count or 0 }}</span>
+            </div>
+            <div class="post-excerpt">
+                {{ post.excerpt }}
+            </div>
+            <div class="post-actions">
+                <a href="{{ url_for('view_post', post_id=post.id) }}" class="btn btn-small">
+                    📖 阅读详情
+                </a>
+                <button class="btn btn-small like-btn {% if post.has_liked %}liked{% endif %}" data-post-id="{{ post.id }}" {% if post.has_liked %}style="background: linear-gradient(45deg, #ff4757, #ff3742);"{% endif %}>
+                    ❤️ <span class="like-count">{{ post.like_count }}</span>
+                </button>
+                {% if current_user is not none %}
+                    {% set user_id = current_user.id %}
+                    {% if post.user_id is not none and post.user_id == user_id or current_user.is_admin %}
+                        <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn btn-small btn-secondary">
+                            ✏️ 编辑
+                        </a>
+                        <a href="{{ url_for('delete_post', post_id=post.id) }}" class="btn btn-small btn-danger" onclick="return confirm('确定要删除这篇超酷的文章吗？')">
+                            🗑️ 删除
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div style="font-size: 4rem; margin-bottom: 20px;">🌌</div>
+            <h3>宇宙中还没有文章</h3>
+            <p>快成为第一个在这片数字星空中留下足迹的人吧！</p>
+            {% if current_user %}
+                <a href="{{ url_for('create_post') }}" class="btn">
+                    🌠 发射第一颗流星
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn">
+                    🔐 登录后创作
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- 加载更多提示 -->
+<div id="loading-indicator" style="text-align: center; padding: 30px; color: rgba(255,255,255,0.7); display: none;">
+    <div style="font-size: 1.5rem; margin-bottom: 10px;">⏳</div>
+    <div>加载中...</div>
+</div>
+
+<!-- 无更多数据提示 -->
+<div id="no-more" style="text-align: center; padding: 30px; color: rgba(255,255,255,0.5); display: none;">
+    <div style="font-size: 1.5rem; margin-bottom: 10px;">🎉</div>
+    <div>已经到底啦～</div>
+</div>
+
+<!-- 统计信息 -->
+<div style="text-align: center; margin-top: 50px; color: rgba(255,255,255,0.7);">
+    <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+        <div>
+            <div style="font-size: 2.5rem; font-weight: 700; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ total_posts }}</div>
+            <div>篇文章</div>
+        </div>
+        <div>
+            <div style="font-size: 2.5rem; font-weight: 700; background: var(--secondary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">∞</div>
+            <div>次浏览</div>
+        </div>
+        <div>
+            <div style="font-size: 2.5rem; font-weight: 700; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">24h</div>
+            <div>在线创作</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 瀑布流滚动加载
+let currentPage = {{ page }};
+let isLoading = false;
+let hasMore = {{ 'true' if page * per_page < total_posts else 'false' }};
+
+// 加载更多文章
+function loadMorePosts() {
+    if (isLoading || !hasMore) return;
+    
+    isLoading = true;
+    document.getElementById('loading-indicator').style.display = 'block';
+    
+    const nextPage = currentPage + 1;
+    
+    fetch(`/api/posts?page=${nextPage}&per_page=6`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loading-indicator').style.display = 'none';
+            
+            if (data.posts && data.posts.length > 0) {
+                const postsGrid = document.getElementById('posts');
+                
+                // 渲染新文章
+                data.posts.forEach(post => {
+                    const article = document.createElement('article');
+                    article.className = 'post-card';
+                    
+                    // 构建操作按钮 HTML
+                    let actionButtons = `
+                        <a href="/post/${post.id}" class="btn btn-small">
+                            📖 阅读详情
+                        </a>
+                        <button class="btn btn-small like-btn ${post.has_liked ? 'liked' : ''}" data-post-id="${post.id}" ${post.has_liked ? 'style="background: linear-gradient(45deg, #ff4757, #ff3742);"' : ''}>
+                            ❤️ <span class="like-count">${post.like_count || 0}</span>
+                        </button>
+                    `;
+                    
+                    // 如果有权限编辑，添加编辑和删除按钮
+                    if (data.current_user && post.can_edit) {
+                        actionButtons += `
+                            <a href="/edit/${post.id}" class="btn btn-small btn-secondary">
+                                ✏️ 编辑
+                            </a>
+                            <a href="/delete/${post.id}" class="btn btn-small btn-danger" onclick="return confirm('确定要删除这篇超酷的文章吗？')">
+                                🗑️ 删除
+                            </a>
+                        `;
+                    }
+                    
+                    article.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                            <h3><a href="/post/${post.id}">${post.title}</a></h3>
+                            <span style="background: var(--primary-gradient); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                                HOT
+                            </span>
+                        </div>
+                        <div class="post-meta">
+                            <span class="author">👤 ${post.author_name || post.author || '匿名'}</span>
+                            <span class="date">📅 ${post.created_at ? post.created_at.substring(0, 10) : ''}</span>
+                            <span>👁️ ${post.view_count || 0}</span>
+                        </div>
+                        <div class="post-excerpt">
+                            ${post.excerpt}
+                        </div>
+                        <div class="post-actions">
+                            ${actionButtons}
+                        </div>
+                    `;
+                    postsGrid.appendChild(article);
+                });
+                
+                currentPage = nextPage;
+                hasMore = data.has_more;
+                
+                if (!hasMore) {
+                    document.getElementById('no-more').style.display = 'block';
+                }
+            } else {
+                hasMore = false;
+                document.getElementById('no-more').style.display = 'block';
+            }
+            
+            isLoading = false;
+        })
+        .catch(error => {
+            console.error('加载文章失败:', error);
+            document.getElementById('loading-indicator').style.display = 'none';
+            isLoading = false;
+        });
+}
+
+// 监听滚动事件
+window.addEventListener('scroll', function() {
+    const scrollTop = window.scrollY;
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    
+    // 当滚动到距离底部 300px 时加载更多
+    if (scrollTop + windowHeight >= documentHeight - 300) {
+        loadMorePosts();
+    }
+});
+
+// 修复锚点跳转高度问题
+document.addEventListener('DOMContentLoaded', function() {
+    // 监听锚点链接点击
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            // 修复：跳过空锚点 '#'
+            if (href && href.startsWith('#') && href !== '#') {
+                e.preventDefault();
+                
+                // 获取目标元素
+                const target = document.querySelector(href);
+                if (target) {
+                    // 计算正确的滚动位置（减去导航栏高度）
+                    const navHeight = document.querySelector('.header')?.offsetHeight || 0;
+                    const targetTop = target.getBoundingClientRect().top + window.scrollY - navHeight;
+                    
+                    // 平滑滚动到目标位置
+                    window.scrollTo({
+                        top: targetTop,
+                        behavior: 'smooth'
+                    });
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
