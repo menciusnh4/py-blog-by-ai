@@ -24,7 +24,11 @@ class Database:
                 password_hash TEXT NOT NULL,
                 email TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                is_admin BOOLEAN DEFAULT FALSE
+                is_admin BOOLEAN DEFAULT FALSE,
+                is_active BOOLEAN DEFAULT TRUE,
+                register_ip TEXT,
+                last_login_ip TEXT,
+                last_login_at TIMESTAMP
             )
         ''')
         
@@ -51,6 +55,7 @@ class Database:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 view_count INTEGER DEFAULT 0,
+                is_pinned BOOLEAN DEFAULT FALSE,
                 FOREIGN KEY (user_id) REFERENCES users (id)
             )
         ''')
@@ -100,6 +105,19 @@ class Database:
                 FOREIGN KEY (comment_id) REFERENCES comments (id) ON DELETE CASCADE,
                 FOREIGN KEY (post_id) REFERENCES posts (id),
                 FOREIGN KEY (from_user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # 创建底部导航表
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS footer_links (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                link_text TEXT NOT NULL,
+                url TEXT NOT NULL,
+                new_tab BOOLEAN DEFAULT FALSE,
+                sort_order INTEGER DEFAULT 0,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         
@@ -166,7 +184,8 @@ class Database:
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT u.id, u.username, u.email, u.is_admin 
+            SELECT u.id, u.username, u.email, u.is_admin, u.is_active,
+                   u.register_ip, u.last_login_ip, u.last_login_at
             FROM sessions s
             JOIN users u ON s.user_id = u.id
             WHERE s.session_token = ? AND s.expires_at > ?
@@ -500,6 +519,182 @@ class Database:
             SET is_read = TRUE 
             WHERE user_id = ?
         ''', (user_id,))
+        conn.commit()
+        affected = cursor.rowcount
+        conn.close()
+        return affected > 0
+    
+    # ========== 后台管理相关方法 ==========
+    
+    def get_all_users(self, page=1, per_page=20):
+        """获取所有用户列表（分页）"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        offset = (page - 1) * per_page
+        cursor.execute('''
+            SELECT id, username, email, created_at, is_admin, is_active,
+                   register_ip, last_login_ip, last_login_at
+            FROM users
+            ORDER BY created_at DESC
+            LIMIT ? OFFSET ?
+        ''', (per_page, offset))
+        users = cursor.fetchall()
+        conn.close()
+        return users
+    
+    def get_user_count(self):
+        """获取用户总数"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM users')
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
+    def update_user_role(self, user_id, is_admin):
+        """修改用户角色"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE users SET is_admin = ? WHERE id = ?
+        ''', (is_admin, user_id))
+        conn.commit()
+        affected = cursor.rowcount
+        conn.close()
+        return affected > 0
+    
+    def toggle_user_active(self, user_id):
+        """切换用户启用状态"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE users SET is_active = NOT is_active WHERE id = ?
+        ''', (user_id,))
+        conn.commit()
+        affected = cursor.rowcount
+        conn.close()
+        return affected > 0
+    
+    def get_all_posts(self, page=1, per_page=20):
+        """获取所有文章列表（分页）"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        offset = (page - 1) * per_page
+        cursor.execute('''
+            SELECT p.*, u.username as author_name,
+                   (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) as comment_count
+            FROM posts p
+            LEFT JOIN users u ON p.user_id = u.id
+            ORDER BY p.is_pinned DESC, p.created_at DESC
+            LIMIT ? OFFSET ?
+        ''', (per_page, offset))
+        posts = cursor.fetchall()
+        conn.close()
+        return posts
+    
+    def get_post_count(self):
+        """获取文章总数"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM posts')
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
+    def toggle_post_pinned(self, post_id):
+        """切换文章置顶状态"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE posts SET is_pinned = NOT is_pinned WHERE id = ?
+        ''', (post_id,))
+        conn.commit()
+        affected = cursor.rowcount
+        conn.close()
+        return affected > 0
+    
+    def update_user_login_info(self, user_id, ip_address):
+        """更新用户登录信息"""
+        import datetime as dt
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE users 
+            SET last_login_ip = ?, last_login_at = ?
+            WHERE id = ?
+        ''', (ip_address, dt.datetime.now(), user_id))
+        conn.commit()
+        conn.close()
+    
+    def update_user_register_ip(self, user_id, ip_address):
+        """更新用户注册 IP"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE users SET register_ip = ? WHERE id = ?
+        ''', (ip_address, user_id))
+        conn.commit()
+        conn.close()
+    
+    # ========== 底部导航相关方法 ==========
+    
+    def get_footer_links(self):
+        """获取所有底部导航链接"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM footer_links
+            WHERE is_active = TRUE
+            ORDER BY sort_order, created_at
+        ''')
+        links = cursor.fetchall()
+        conn.close()
+        return links
+    
+    def get_all_footer_links(self):
+        """获取所有底部导航链接（包括未激活的，用于管理）"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM footer_links
+            ORDER BY sort_order, created_at
+        ''')
+        links = cursor.fetchall()
+        conn.close()
+        return links
+    
+    def create_footer_link(self, link_text, url, new_tab=False, sort_order=0):
+        """创建底部导航链接"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO footer_links (link_text, url, new_tab, sort_order)
+            VALUES (?, ?, ?, ?)
+        ''', (link_text, url, new_tab, sort_order))
+        conn.commit()
+        link_id = cursor.lastrowid
+        conn.close()
+        return link_id
+    
+    def update_footer_link(self, link_id, link_text, url, new_tab, sort_order, is_active):
+        """更新底部导航链接"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE footer_links 
+            SET link_text = ?, url = ?, new_tab = ?, sort_order = ?, is_active = ?
+            WHERE id = ?
+        ''', (link_text, url, new_tab, sort_order, is_active, link_id))
+        conn.commit()
+        affected = cursor.rowcount
+        conn.close()
+        return affected > 0
+    
+    def delete_footer_link(self, link_id):
+        """删除底部导航链接"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM footer_links WHERE id = ?', (link_id,))
         conn.commit()
         affected = cursor.rowcount
         conn.close()

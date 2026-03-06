@@ -1,0 +1,166 @@
+{% extends "admin/base.html" %}
+
+{% block admin_title %}用户管理{% endblock %}
+{% block admin_header %}👥 用户管理{% endblock %}
+
+{% block admin_content %}
+<div class="users-table">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>邮箱</th>
+                <th>角色</th>
+                <th>状态</th>
+                <th>注册 IP</th>
+                <th>最后登录</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td><strong>{{ user.username }}</strong></td>
+                <td>{{ user.email or '-' }}</td>
+                <td>
+                    {% if user.is_admin %}
+                        <span class="badge badge-admin">👑 管理员</span>
+                    {% else %}
+                        <span class="badge badge-user">👤 用户</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.is_active %}
+                        <span class="badge badge-active">✅ 正常</span>
+                    {% else %}
+                        <span class="badge badge-disabled">❌ 禁用</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.register_ip or '未知' }}</td>
+                <td>
+                    {% if user.last_login_at %}
+                        {{ user.last_login_at[:16] }}<br>
+                        <small style="color: rgba(255,255,255,0.5);">{{ user.last_login_ip or '-' }}</small>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('admin_toggle_role', user_id=user.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-sm">
+                            {% if user.is_admin %}降为普通{% else %}设为管理{% endif %}
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_toggle_active', user_id=user.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            {% if user.is_active %}禁用{% else %}启用{% endif %}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="pagination">
+    {% if page > 1 %}
+        <a href="?page={{ page - 1 }}" class="btn">← 上一页</a>
+    {% endif %}
+    
+    <span class="page-info">第 {{ page }} 页 / 共 {{ (total / per_page)|round(0, 'ceil')|int }} 页</span>
+    
+    {% if page * per_page < total %}
+        <a href="?page={{ page + 1 }}" class="btn">下一页 →</a>
+    {% endif %}
+</div>
+
+<style>
+.users-table {
+    overflow-x: auto;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead th {
+    padding: 15px;
+    text-align: left;
+    color: #4ecdc4;
+    font-weight: 600;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+tbody td {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+}
+
+.badge-user {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.badge-active {
+    background: rgba(78, 205, 196, 0.2);
+    color: #4ecdc4;
+}
+
+.badge-disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-sm {
+    padding: 5px 12px;
+    font-size: 0.85rem;
+    margin-right: 5px;
+}
+
+.btn-danger {
+    background: rgba(255, 71, 87, 0.3);
+    border-color: rgba(255, 71, 87, 0.5);
+}
+
+.btn-danger:hover {
+    background: rgba(255, 71, 87, 0.5);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.page-info {
+    color: rgba(255, 255, 255, 0.6);
+}
+</style>
+{% endblock %}

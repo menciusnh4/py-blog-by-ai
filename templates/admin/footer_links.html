@@ -1,0 +1,134 @@
+{% extends "admin/base.html" %}
+
+{% block admin_title %}底部导航管理{% endblock %}
+{% block admin_header %}🔗 底部导航管理{% endblock %}
+
+{% block admin_content %}
+<!-- 添加新链接 -->
+<div class="add-link-form">
+    <h3>➕ 添加新链接</h3>
+    <form method="POST" action="{{ url_for('admin_create_footer_link') }}">
+        <div class="form-row">
+            <input type="text" name="link_text" placeholder="显示文本（如：关于我们）" required 
+                   style="flex: 1; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff;">
+            <input type="url" name="url" placeholder="URL 地址" required 
+                   style="flex: 2; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff;">
+            <label style="display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.8);">
+                <input type="checkbox" name="new_tab" style="width: auto;">
+                新窗口打开
+            </label>
+            <input type="number" name="sort_order" placeholder="排序" value="0" min="0"
+                   style="width: 80px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff;">
+            <button type="submit" class="btn">添加</button>
+        </div>
+    </form>
+</div>
+
+<!-- 链接列表 -->
+<div class="links-list">
+    {% for link in links %}
+    <div class="link-card {% if not link.is_active %}inactive{% endif %}">
+        <div class="link-info">
+            <strong>{{ link.link_text }}</strong>
+            <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">→ {{ link.url }}</span>
+            {% if link.new_tab %}
+                <span class="badge">新窗口</span>
+            {% endif %}
+            <span class="badge">排序：{{ link.sort_order }}</span>
+            {% if not link.is_active %}
+                <span class="badge badge-disabled">未激活</span>
+            {% endif %}
+        </div>
+        <div class="link-actions">
+            <form method="POST" action="{{ url_for('admin_update_footer_link', link_id=link.id) }}" style="display: inline;">
+                <input type="hidden" name="link_text" value="{{ link.link_text }}">
+                <input type="hidden" name="url" value="{{ link.url }}">
+                <input type="hidden" name="new_tab" value="{{ 'on' if link.new_tab }}">
+                <input type="hidden" name="sort_order" value="{{ link.sort_order }}">
+                <input type="hidden" name="is_active" value="{{ 'on' if link.is_active }}">
+                <button type="submit" class="btn btn-sm">
+                    {{ '启用' if link.is_active else '禁用' }}
+                </button>
+            </form>
+            <form method="POST" action="{{ url_for('admin_delete_footer_link', link_id=link.id) }}" style="display: inline;"
+                  onsubmit="return confirm('确定删除这个链接吗？');">
+                <button type="submit" class="btn btn-sm btn-danger">删除</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+.add-link-form {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.add-link-form h3 {
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.link-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.link-card.inactive {
+    opacity: 0.6;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.link-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.link-info strong {
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.badge-disabled {
+    background: rgba(255, 71, 87, 0.2);
+    color: #ff4757;
+}
+
+.link-actions {
+    display: flex;
+    gap: 10px;
+}
+</style>
+{% endblock %}

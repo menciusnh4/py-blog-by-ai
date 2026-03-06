@@ -38,6 +38,21 @@ def get_excerpt(content, max_length=180):
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here-change-in-production'
 
+def get_client_ip():
+    """获取客户端真实 IP 地址（支持反向代理）"""
+    # 优先读取 X-Forwarded-For
+    if request.headers.get('X-Forwarded-For'):
+        # X-Forwarded-For 可能包含多个 IP，第一个是真实客户端 IP
+        ip = request.headers.get('X-Forwarded-For').split(',')[0].strip()
+        return ip
+    
+    # 其次读取 X-Real-IP
+    if request.headers.get('X-Real-IP'):
+        return request.headers.get('X-Real-IP')
+    
+    # 最后使用 remote_addr
+    return request.remote_addr
+
 def get_current_user():
     """获取当前登录用户（返回字典）"""
     session_token = session.get('session_token')
@@ -56,6 +71,21 @@ def require_login(f):
         if not get_current_user():
             flash('请先登录后再进行此操作！')
             return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def require_admin(f):
+    """管理员权限装饰器"""
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        current_user = get_current_user()
+        if not current_user:
+            flash('请先登录！')
+            return redirect(url_for('login', next=request.url))
+        if not current_user.get('is_admin', False):
+            flash('您没有权限访问此页面！')
+            return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -497,8 +527,18 @@ def login():
         
         user = db.verify_user(username, password)
         if user:
+            user_dict = dict(user)
+            # 检查用户是否被禁用
+            if not user_dict.get('is_active', True):
+                flash('您的账户已被禁用，请联系管理员！')
+                return render_template('login.html')
+            
             session_token = db.create_session(user['id'])
             session['session_token'] = session_token
+            
+            # 更新用户登录信息
+            client_ip = get_client_ip()
+            db.update_user_login_info(user['id'], client_ip)
             
             response = make_response(redirect(url_for('index')))
             response.set_cookie('session_token', session_token, 
@@ -519,21 +559,154 @@ def register():
         email = request.form.get('email', '')
         
         if len(username) < 3:
-            flash('用户名至少需要3个字符！')
+            flash('用户名至少需要 3 个字符！')
             return render_template('register.html')
         
         if len(password) < 6:
-            flash('密码至少需要6个字符！')
+            flash('密码至少需要 6 个字符！')
             return render_template('register.html')
         
         user_id = db.create_user(username, password, email)
         if user_id:
+            # 记录注册 IP
+            client_ip = get_client_ip()
+            db.update_user_register_ip(user_id, client_ip)
+            
             flash('注册成功！请登录。')
             return redirect(url_for('login'))
         else:
             flash('用户名已存在！')
     
     return render_template('register.html')
+
+# ========== 后台管理相关路由 ==========
+
+@app.route('/admin')
+@require_admin
+def admin_dashboard():
+    """后台管理首页"""
+    current_user = get_current_user()
+    user_count = db.get_user_count()
+    post_count = db.get_post_count()
+    
+    return render_template('admin/dashboard.html', 
+                         current_user=current_user,
+                         user_count=user_count,
+                         post_count=post_count)
+
+@app.route('/admin/users')
+@require_admin
+def admin_users():
+    """用户管理"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    current_user = get_current_user()
+    
+    users = db.get_all_users(page, per_page)
+    total = db.get_user_count()
+    
+    return render_template('admin/users.html',
+                         current_user=current_user,
+                         users=users,
+                         page=page,
+                         per_page=per_page,
+                         total=total)
+
+@app.route('/admin/users/<int:user_id>/toggle-role', methods=['POST'])
+@require_admin
+def admin_toggle_role(user_id):
+    """切换用户角色"""
+    db.update_user_role(user_id, not request.form.get('is_admin', False))
+    flash('用户角色已更新！')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/users/<int:user_id>/toggle-active', methods=['POST'])
+@require_admin
+def admin_toggle_active(user_id):
+    """切换用户启用状态"""
+    db.toggle_user_active(user_id)
+    flash('用户状态已更新！')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/posts')
+@require_admin
+def admin_posts():
+    """文章管理"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    current_user = get_current_user()
+    
+    posts = db.get_all_posts(page, per_page)
+    total = db.get_post_count()
+    
+    return render_template('admin/posts.html',
+                         current_user=current_user,
+                         posts=posts,
+                         page=page,
+                         per_page=per_page,
+                         total=total)
+
+@app.route('/admin/posts/<int:post_id>/toggle-pinned', methods=['POST'])
+@require_admin
+def admin_toggle_pinned(post_id):
+    """切换文章置顶状态"""
+    db.toggle_post_pinned(post_id)
+    flash('文章置顶状态已更新！')
+    return redirect(url_for('admin_posts'))
+
+@app.route('/admin/posts/<int:post_id>/delete', methods=['POST'])
+@require_admin
+def admin_delete_post(post_id):
+    """删除文章"""
+    # TODO: 实现删除文章的数据库方法
+    flash('文章已删除！')
+    return redirect(url_for('admin_posts'))
+
+@app.route('/admin/footer-links')
+@require_admin
+def admin_footer_links():
+    """底部导航管理"""
+    current_user = get_current_user()
+    links = db.get_all_footer_links()
+    
+    return render_template('admin/footer_links.html',
+                         current_user=current_user,
+                         links=links)
+
+@app.route('/admin/footer-links/create', methods=['POST'])
+@require_admin
+def admin_create_footer_link():
+    """创建底部导航链接"""
+    link_text = request.form.get('link_text')
+    url = request.form.get('url')
+    new_tab = request.form.get('new_tab') == 'on'
+    sort_order = request.form.get('sort_order', 0, type=int)
+    
+    db.create_footer_link(link_text, url, new_tab, sort_order)
+    flash('底部导航链接已创建！')
+    return redirect(url_for('admin_footer_links'))
+
+@app.route('/admin/footer-links/<int:link_id>/update', methods=['POST'])
+@require_admin
+def admin_update_footer_link(link_id):
+    """更新底部导航链接"""
+    link_text = request.form.get('link_text')
+    url = request.form.get('url')
+    new_tab = request.form.get('new_tab') == 'on'
+    sort_order = request.form.get('sort_order', 0, type=int)
+    is_active = request.form.get('is_active') == 'on'
+    
+    db.update_footer_link(link_id, link_text, url, new_tab, sort_order, is_active)
+    flash('底部导航链接已更新！')
+    return redirect(url_for('admin_footer_links'))
+
+@app.route('/admin/footer-links/<int:link_id>/delete', methods=['POST'])
+@require_admin
+def admin_delete_footer_link(link_id):
+    """删除底部导航链接"""
+    db.delete_footer_link(link_id)
+    flash('底部导航链接已删除！')
+    return redirect(url_for('admin_footer_links'))
 
 @app.route('/logout')
 def logout():
@@ -547,6 +720,13 @@ def logout():
     response.set_cookie('session_token', '', expires=0)
     flash('已成功退出登录！')
     return response
+
+@app.context_processor
+def inject_globals():
+    """注入全局变量到所有模板"""
+    return {
+        'get_footer_links': db.get_footer_links
+    }
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

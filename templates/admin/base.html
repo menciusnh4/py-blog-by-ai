@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}{% block admin_title %}后台管理{% endblock %} - 极客博客{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- 后台管理侧边栏 -->
+    <aside class="admin-sidebar">
+        <div class="admin-logo">
+            <h2>⚙️ 后台管理</h2>
+        </div>
+        
+        <nav class="admin-nav">
+            <a href="{{ url_for('admin_dashboard') }}" 
+               class="admin-nav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                📊 仪表盘
+            </a>
+            <a href="{{ url_for('admin_users') }}" 
+               class="admin-nav-item {% if request.endpoint == 'admin_users' %}active{% endif %}">
+                👥 用户管理
+            </a>
+            <a href="{{ url_for('admin_posts') }}" 
+               class="admin-nav-item {% if request.endpoint == 'admin_posts' %}active{% endif %}">
+                📝 文章管理
+            </a>
+            <a href="{{ url_for('admin_footer_links') }}" 
+               class="admin-nav-item {% if request.endpoint == 'admin_footer_links' %}active{% endif %}">
+                🔗 底部导航
+            </a>
+            
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+            
+            <a href="{{ url_for('index') }}" class="admin-nav-item">
+                🔙 返回前台
+            </a>
+        </nav>
+        
+        <div class="admin-user-info">
+            <p>当前用户：<strong>{{ current_user.username }}</strong></p>
+            <p>角色：{% if current_user.is_admin %}👑 管理员{% else %}👤 普通用户{% endif %}</p>
+        </div>
+    </aside>
+    
+    <!-- 后台管理主内容区 -->
+    <main class="admin-main">
+        <header class="admin-header">
+            <h1>{% block admin_header %}后台管理{% endblock %}</h1>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for message in messages %}
+                            <div class="flash-message">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </header>
+        
+        <div class="admin-content">
+            {% block admin_content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+<style>
+.admin-container {
+    display: flex;
+    min-height: calc(100vh - 60px);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 20px;
+}
+
+.admin-sidebar {
+    width: 250px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 30px 20px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-logo h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.admin-nav-item {
+    display: block;
+    padding: 12px 15px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.admin-nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.admin-nav-item.active {
+    background: var(--primary-gradient);
+    color: #fff;
+    font-weight: 600;
+}
+
+.admin-user-info {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+}
+
+.admin-main {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.admin-header {
+    margin-bottom: 30px;
+}
+
+.admin-header h1 {
+    color: #fff;
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.flash-messages {
+    margin-top: 20px;
+}
+
+.flash-message {
+    background: rgba(78, 205, 196, 0.2);
+    border-left: 4px solid #4ecdc4;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.admin-content {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 30px;
+    border-radius: 15px;
+    min-height: 500px;
+}
+
+/* 暗黑模式适配 */
+.dark-mode .admin-container {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .admin-sidebar {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .admin-container {
+        flex-direction: column;
+        margin: 10px;
+    }
+    
+    .admin-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .admin-main {
+        padding: 20px;
+    }
+}
+</style>
+{% endblock %}
