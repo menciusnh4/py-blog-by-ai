@@ -67,6 +67,12 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* 暗黑模式适配 */
+body.dark-mode .profile-user-card {
+    background: #1e293b;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
 .avatar {
     width: 100px;
     height: 100px;
@@ -87,10 +93,20 @@
     font-weight: 600;
 }
 
+/* 暗黑模式适配 */
+body.dark-mode .username {
+    color: #e2e8f0;
+}
+
 .nickname {
     color: #7f8c8d;
     font-size: 0.95rem;
     margin-bottom: 10px;
+}
+
+/* 暗黑模式适配 */
+body.dark-mode .nickname {
+    color: #94a3b8;
 }
 
 .member-since {
@@ -98,11 +114,22 @@
     font-size: 0.85rem;
 }
 
+/* 暗黑模式适配 */
+body.dark-mode .member-since {
+    color: #64748b;
+}
+
 .profile-menu {
     background: #fff;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* 暗黑模式适配 */
+body.dark-mode .profile-menu {
+    background: #1e293b;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .profile-menu .menu-item {
@@ -114,14 +141,19 @@
     border-left: 3px solid transparent;
 }
 
-.profile-menu .menu-item:hover {
-    background: #f8f9fa;
+/* 暗黑模式适配 */
+body.dark-mode .profile-menu .menu-item {
+    color: #e2e8f0;
 }
 
-.profile-menu .menu-item.active {
-    background: #e3f2fd;
-    color: #2196f3;
-    border-left-color: #2196f3;
+body.dark-mode .profile-menu .menu-item:hover {
+    background: #334155;
+}
+
+body.dark-mode .profile-menu .menu-item.active {
+    background: #1e3a8a;
+    color: #60a5fa;
+    border-left-color: #60a5fa;
 }
 
 .profile-main {
@@ -130,6 +162,12 @@
     border-radius: 8px;
     padding: 30px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* 暗黑模式适配 */
+body.dark-mode .profile-main {
+    background: #1e293b;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 /* 响应式设计 */

@@ -58,16 +58,24 @@
     border-bottom: 2px solid #ecf0f1;
 }
 
-.profile-header h2 {
-    color: #2c3e50;
-    font-size: 1.6rem;
-    margin: 0 0 8px 0;
+/* 暗黑模式适配 */
+body.dark-mode .profile-header {
+    border-bottom-color: #475569;
+}
+
+body.dark-mode .profile-header h2 {
+    color: #e2e8f0;
 }
 
 .header-desc {
     color: #7f8c8d;
     font-size: 0.95rem;
     margin: 0;
+}
+
+/* 暗黑模式适配 */
+body.dark-mode .header-desc {
+    color: #94a3b8;
 }
 
 .posts-list {
@@ -80,18 +88,30 @@
     background: #f8f9fa;
     padding: 20px;
     border-radius: 6px;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 15px;
     align-items: center;
     transition: all 0.2s;
 }
 
-.post-item:hover {
-    background: #e9ecef;
+/* 暗黑模式适配 */
+body.dark-mode .post-item {
+    background: #334155;
+}
+
+body.dark-mode .post-item:hover {
+    background: #475569;
 }
 
 .post-main {
-    flex: 1;
+    min-width: 0; /* 允许内容收缩 */
+}
+
+.post-actions {
+    justify-self: end; /* 按钮靠右对齐 */
+    display: flex;
+    gap: 10px;
 }
 
 .post-title {
@@ -101,14 +121,23 @@
     font-weight: 600;
 }
 
+/* 暗黑模式适配 */
+body.dark-mode .post-title {
+    color: #e2e8f0;
+}
+
+body.dark-mode .post-title a {
+    color: #e2e8f0;
+}
+
 .post-title a {
     color: #2c3e50;
     text-decoration: none;
     transition: color 0.2s;
 }
 
-.post-title a:hover {
-    color: #3498db;
+body.dark-mode .post-title a:hover {
+    color: #60a5fa;
 }
 
 .badge-pinned {
@@ -127,6 +156,11 @@
     gap: 15px;
     color: #7f8c8d;
     font-size: 0.85rem;
+}
+
+/* 暗黑模式适配 */
+body.dark-mode .post-meta {
+    color: #94a3b8;
 }
 
 .post-actions {
@@ -208,9 +242,23 @@
     border-top: 1px solid #ecf0f1;
 }
 
+/* 暗黑模式适配 */
+body.dark-mode .pagination {
+    border-top-color: #475569;
+}
+
 .page-info {
     color: #7f8c8d;
     font-size: 0.95rem;
+}
+
+/* 暗黑模式适配 */
+body.dark-mode .page-info {
+    color: #94a3b8;
+}
+
+body.dark-mode .empty-state {
+    color: #64748b;
 }
 </style>
 {% endblock %}
