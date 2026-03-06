@@ -1,0 +1,45 @@
+{% extends "admin_new/base.html" %}
+
+{% block page_title %}📊 仪表盘{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ user_count }}</div>
+        <div class="stat-label">注册用户</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-number">{{ post_count }}</div>
+        <div class="stat-label">文章总数</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-number">0</div>
+        <div class="stat-label">今日访问</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-number">0</div>
+        <div class="stat-label">评论总数</div>
+    </div>
+</div>
+
+<div class="content-card">
+    <h3 style="margin-bottom: 20px; color: #2c3e50;">快速操作</h3>
+    <div class="action-buttons">
+        <a href="{{ url_for('admin_users') }}" class="btn btn-primary">
+            👥 管理用户
+        </a>
+        <a href="{{ url_for('admin_posts') }}" class="btn btn-primary">
+            📝 管理文章
+        </a>
+        <a href="{{ url_for('admin_footer_links') }}" class="btn btn-primary">
+            🔗 配置导航
+        </a>
+        <a href="{{ url_for('create_post') }}" class="btn btn-success">
+            ✍️ 写文章
+        </a>
+    </div>
+</div>
+{% endblock %}

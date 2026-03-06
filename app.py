@@ -589,7 +589,7 @@ def admin_dashboard():
     user_count = db.get_user_count()
     post_count = db.get_post_count()
     
-    return render_template('admin/dashboard.html', 
+    return render_template('admin_new/dashboard.html', 
                          current_user=current_user,
                          user_count=user_count,
                          post_count=post_count)
@@ -605,7 +605,7 @@ def admin_users():
     users = db.get_all_users(page, per_page)
     total = db.get_user_count()
     
-    return render_template('admin/users.html',
+    return render_template('admin_new/users.html',
                          current_user=current_user,
                          users=users,
                          page=page,
@@ -639,7 +639,7 @@ def admin_posts():
     posts = db.get_all_posts(page, per_page)
     total = db.get_post_count()
     
-    return render_template('admin/posts.html',
+    return render_template('admin_new/posts.html',
                          current_user=current_user,
                          posts=posts,
                          page=page,
@@ -669,7 +669,7 @@ def admin_footer_links():
     current_user = get_current_user()
     links = db.get_all_footer_links()
     
-    return render_template('admin/footer_links.html',
+    return render_template('admin_new/footer_links.html',
                          current_user=current_user,
                          links=links)
 

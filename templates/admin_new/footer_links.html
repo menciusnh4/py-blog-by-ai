@@ -1,11 +1,10 @@
-{% extends "admin/base.html" %}
+{% extends "admin_new/base.html" %}
 
-{% block admin_title %}底部导航管理{% endblock %}
-{% block admin_header %}🔗 底部导航管理{% endblock %}
+{% block page_title %}🔗 底部导航管理{% endblock %}
 
-{% block admin_content %}
+{% block content %}
 <!-- 添加新链接 -->
-<div class="form-section">
+<div class="form-section" style="background: #fff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 6px; margin-bottom: 25px;">
     <h4 style="margin-bottom: 15px; color: #2c3e50;">➕ 添加新链接</h4>
     <form method="POST" action="{{ url_for('admin_create_footer_link') }}">
         <div class="form-row-inline">
@@ -27,8 +26,9 @@
 <!-- 链接列表 -->
 <div class="links-list">
     {% for link in links %}
-    <div class="link-item {% if not link.is_active %}inactive{% endif %}">
-        <div class="link-info">
+    <div class="link-item {% if not link.is_active %}inactive{% endif %}" 
+         style="background: #fff; padding: 15px 20px; border: 1px solid #e0e0e0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div class="link-info" style="flex: 1; display: flex; align-items: center; gap: 15px; color: #34495e;">
             <strong>{{ link.link_text }}</strong>
             <span style="color: #95a5a6; font-size: 0.9rem;">→ {{ link.url }}</span>
             {% if link.new_tab %}
@@ -39,7 +39,7 @@
                 <span class="label label-danger">未激活</span>
             {% endif %}
         </div>
-        <div class="link-actions">
+        <div class="link-actions" style="display: flex; gap: 10px; flex-shrink: 0;">
             <form method="POST" action="{{ url_for('admin_update_footer_link', link_id=link.id) }}" style="display: inline;">
                 <input type="hidden" name="link_text" value="{{ link.link_text }}">
                 <input type="hidden" name="url" value="{{ link.url }}">
@@ -58,78 +58,4 @@
     </div>
     {% endfor %}
 </div>
-
-<style>
-.form-section {
-    background: #fff;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    margin-bottom: 25px;
-}
-
-.form-row-inline {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.form-control {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background: #fff;
-    color: #333;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: #3498db;
-}
-
-.links-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.link-item {
-    background: #fff;
-    padding: 15px 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.link-item.inactive {
-    opacity: 0.7;
-    border-color: #f0f0f0;
-}
-
-.link-info {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    color: #34495e;
-}
-
-.link-info strong {
-    color: #2c3e50;
-    font-size: 1rem;
-}
-
-.label-info {
-    background: #17a2b8;
-    color: #fff;
-}
-
-.link-actions {
-    display: flex;
-    gap: 10px;
-    flex-shrink: 0;
-}
-</style>
 {% endblock %}

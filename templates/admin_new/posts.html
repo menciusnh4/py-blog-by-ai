@@ -1,29 +1,28 @@
-{% extends "admin/base.html" %}
+{% extends "admin_new/base.html" %}
 
-{% block admin_title %}文章管理{% endblock %}
-{% block admin_header %}📝 文章管理{% endblock %}
+{% block page_title %}📝 文章管理{% endblock %}
 
-{% block admin_content %}
+{% block content %}
 <p style="color: #7f8c8d; margin-bottom: 20px;">
     共 {{ total }} 篇文章
 </p>
 
 <div class="posts-list">
     {% for post in posts %}
-    <div class="post-item">
-        <div class="post-main">
-            <h4 class="post-title">
+    <div class="post-item" style="background: #fff; padding: 20px; border: 1px solid #e0e0e0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div class="post-main" style="flex: 1;">
+            <h4 class="post-title" style="color: #2c3e50; margin: 0 0 10px 0; font-size: 1.1rem;">
                 {% if post.is_pinned %}<span class="label label-warning" style="margin-right: 8px;">置顶</span>{% endif %}
                 {{ post.title }}
             </h4>
-            <div class="post-meta">
+            <div class="post-meta" style="display: flex; gap: 20px; color: #95a5a6; font-size: 0.9rem; flex-wrap: wrap;">
                 <span>作者：{{ post.author_name or post.author }}</span>
                 <span>发布于：{{ post.created_at[:10] }}</span>
                 <span>浏览：{{ post.view_count }}</span>
                 <span>评论：{{ post.comment_count }}</span>
             </div>
         </div>
-        <div class="post-actions">
+        <div class="post-actions" style="display: flex; gap: 10px; flex-shrink: 0;">
             <form method="POST" action="{{ url_for('admin_toggle_pinned', post_id=post.id) }}" style="display: inline;">
                 <button type="submit" class="btn btn-sm btn-outline">
                     {% if post.is_pinned %}取消置顶{% else %}置顶{% endif %}
@@ -52,57 +51,4 @@
         <a href="?page={{ page + 1 }}" class="btn btn-sm">下一页 →</a>
     {% endif %}
 </div>
-
-<style>
-.posts-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.post-item {
-    background: #fff;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: none;
-}
-
-.post-item:hover {
-    border-color: #d0d0d0;
-}
-
-.post-main {
-    flex: 1;
-}
-
-.post-title {
-    color: #2c3e50;
-    margin: 0 0 10px 0;
-    font-size: 1.1rem;
-}
-
-.post-meta {
-    display: flex;
-    gap: 20px;
-    color: #95a5a6;
-    font-size: 0.9rem;
-    flex-wrap: wrap;
-}
-
-.post-actions {
-    display: flex;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.label-warning {
-    background: #f39c12;
-    color: #fff;
-}
-</style>
 {% endblock %}
