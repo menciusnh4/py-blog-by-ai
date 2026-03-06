@@ -1,0 +1,143 @@
+{% extends "profile/base.html" %}
+
+{% block profile_content %}
+<div class="profile-header">
+    <h2>📝 个人资料</h2>
+</div>
+
+<div class="profile-form">
+    <form method="POST" action="{{ url_for('update_profile') }}">
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" value="{{ user_info.username }}" disabled class="form-control">
+            <small class="form-text">用户名不可修改</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">邮箱</label>
+            <input type="email" id="email" value="{{ user_info.email or '' }}" disabled class="form-control">
+            <small class="form-text">邮箱不可修改</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="nickname">昵称</label>
+            <input type="text" id="nickname" name="nickname" 
+                   value="{{ user_info.nickname or '' }}" 
+                   placeholder="给自己起个昵称吧~" 
+                   class="form-control" maxlength="50">
+            <small class="form-text">展示在个人主页的昵称</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="bio">个人签名</label>
+            <textarea id="bio" name="bio" rows="4" 
+                      placeholder="介绍一下自己吧~" 
+                      class="form-control" maxlength="200">{{ user_info.bio or '' }}</textarea>
+            <small class="form-text">最多 200 个字符</small>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 保存修改</button>
+        </div>
+    </form>
+</div>
+
+<style>
+.profile-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.profile-header h2 {
+    color: #2c3e50;
+    font-size: 1.6rem;
+    margin: 0;
+}
+
+.profile-form {
+    max-width: 600px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    color: #2c3e50;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+    background: #fff !important;
+    color: #2c3e50 !important;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    background: #fff !important;
+    color: #2c3e50 !important;
+}
+
+.form-control:disabled {
+    background: #f5f6fa !important;
+    color: #7f8c8d !important;
+    cursor: not-allowed !important;
+}
+
+/* 确保昵称和签名输入框可编辑 */
+#nickname,
+#bio {
+    cursor: text !important;
+    pointer-events: auto !important;
+}
+
+/* 覆盖暗黑模式样式 */
+html.dark-mode #nickname,
+html.dark-mode #bio {
+    background: #fff !important;
+    color: #2c3e50 !important;
+}
+
+.form-text {
+    display: block;
+    color: #95a5a6;
+    font-size: 0.85rem;
+    margin-top: 6px;
+}
+
+.form-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+</style>
+{% endblock %}

@@ -14,6 +14,9 @@
 - 🌙 暗黑模式切换
 - ❤️ 点赞功能（支持匿名）
 - 👤 用户系统与管理员权限
+- 🏠 个人中心（资料编辑、文章管理、评论管理）
+- 🔒 文章评论开关控制
+- 📊 后台管理系统（用户、文章、评论、导航管理）
 
 ## 技术栈
 
@@ -49,8 +52,7 @@ python app.py
 blog_project/
 ├── app.py              # Flask 主应用文件
 ├── models.py           # 数据库模型
-├── seed_data.py        # 测试数据脚本
-├── seed_views.py       # 初始化浏览量数据
+├── add_allow_comments_field.py  # 数据库迁移脚本
 ├── create_admin.py     # 创建管理员账号
 ├── requirements.txt    # 依赖包列表
 ├── blog.db            # SQLite 数据库文件
@@ -59,11 +61,22 @@ blog_project/
 │   ├── base.html      # 基础模板
 │   ├── index.html     # 首页模板
 │   ├── post.html      # 文章详情模板
-│   ├── create.html    # 创建文章模板
+│   ├── create.html    # 创作文章模板
 │   ├── edit.html      # 编辑文章模板
 │   ├── login.html     # 登录页面
 │   ├── register.html  # 注册页面
-│   └── loading.html   # 加载页面
+│   ├── loading.html   # 加载页面
+│   └── profile/       # 个人中心模板
+│       ├── index.html     # 个人资料
+│       ├── posts.html     # 我的文章
+│       └── comments.html  # 我的评论
+│   └── admin_new/     # 后台管理模板
+│       ├── base.html      # 管理基础模板
+│       ├── dashboard.html # 仪表盘
+│       ├── users.html     # 用户管理
+│       ├── posts.html     # 文章管理
+│       ├── comments.html  # 评论管理
+│       └── footer_links.html # 底部导航管理
 └── static/            # 静态资源文件
     ├── css/
     │   ├── style.css      # 主样式
@@ -173,18 +186,29 @@ python create_admin.py
 
 ### 2. 如何初始化测试数据？
 ```bash
-python seed_data.py
+# 注意：项目已移除测试数据脚本，建议手动创建文章和评论
 ```
 
-### 3. 评论系统如何使用？
+### 3. 数据库迁移
+如果数据库缺少字段，运行迁移脚本：
+```bash
+python add_allow_comments_field.py
+```
+
+### 4. 评论系统如何使用？
+
+### 4. 评论系统如何使用？
 - 登录后在文章详情页底部发表评论
 - 点击"回复"按钮可以回复其他评论
 - 评论后对方会收到通知
+- 个人中心可查看和管理自己的评论
 
-### 4. 暗黑模式如何切换？
-点击右上角的"🌙 暗黑"或"☀️ 浅色"按钮即可切换主题。
+### 5. 如何控制文章评论开关？
+在创作文章时，勾选或取消“允许评论”复选框即可控制该文章是否开放评论。
 
-### 5. 数据库在哪里？
+### 6. 暗黑模式如何切换？
+
+### 7. 数据库在哪里？
 数据库文件为 `blog.db`，使用 SQLite 存储。可以使用 SQLite 客户端工具查看和编辑。
 
 ## 技术细节
@@ -204,10 +228,12 @@ python seed_data.py
 
 ### 数据库设计
 主要数据表：
-- `users` - 用户表
-- `posts` - 文章表
-- `comments` - 评论表（支持嵌套）
+- `users` - 用户表（含昵称、签名、登录信息）
+- `posts` - 文章表（含评论开关字段）
+- `comments` - 评论表（支持嵌套回复）
 - `notifications` - 通知表
+- `sessions` - 会话表
+- `likes` - 点赞记录表
 
 ### API 接口
 - `/api/posts/<id>/comments` - 获取文章评论
@@ -216,6 +242,9 @@ python seed_data.py
 - `/api/notifications` - 获取通知
 - `/api/notifications/mark-read` - 标记已读
 - `/api/like/<post_id>` - 点赞文章
+- `/admin/users` - 用户管理（管理员）
+- `/admin/posts` - 文章管理（管理员）
+- `/admin/comments` - 评论管理（管理员）
 
 ## 贡献指南
 

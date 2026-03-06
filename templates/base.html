@@ -283,6 +283,27 @@
         }
 
 
+        /* 后台管理按钮样式 */
+        .admin-btn {
+            background: rgba(255, 71, 87, 0.2);
+            border: 1px solid rgba(255, 71, 87, 0.4);
+            color: #ff6b81;
+            padding: 6px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-right: 10px;
+        }
+
+
+        .admin-btn:hover {
+            background: rgba(255, 71, 87, 0.3);
+            border-color: rgba(255, 71, 87, 0.6);
+            color: #ff8799;
+        }
+
+
         html.dark-mode body, html.dark-mode div, html.dark-mode span, html.dark-mode p {
 
 
@@ -343,7 +364,7 @@
                     <div class="user-menu">
                         <!-- 后台管理入口（仅管理员可见） -->
                         {% if current_user.is_admin %}
-                            <a href="{{ url_for('admin_dashboard') }}" class="btn" style="background: rgba(255, 71, 87, 0.3); border-color: rgba(255, 71, 87, 0.5); margin-right: 10px;">
+                            <a href="{{ url_for('admin_dashboard') }}" class="admin-btn">
                                 ⚙️ 后台
                             </a>
                         {% endif %}
@@ -363,13 +384,9 @@
                         </div>
 
 
-                        <span class="user-info">
-
-
+                        <a href="{{ url_for('user_profile') }}" class="user-info" style="text-decoration: none; color: inherit;">
                             👤 {{ current_user.username }}
-
-
-                        </span>
+                        </a>
 
 
                         <a href="{{ url_for('logout') }}">🚪 退出</a>

@@ -1,0 +1,150 @@
+{% extends "admin_new/base.html" %}
+
+{% block page_title %}💬 评论管理{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <p style="color: #7f8c8d; margin: 0;">共 {{ total }} 条评论</p>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>评论内容</th>
+            <th>作者</th>
+            <th>所属文章</th>
+            <th>创建时间</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for comment in comments %}
+        <tr>
+            <td>{{ comment.id }}</td>
+            <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ comment.content }}">
+                {{ comment.content[:50] }}{% if comment.content|length > 50 %}...{% endif %}
+            </td>
+            <td>{{ comment.author_name or '匿名' }}</td>
+            <td>
+                <a href="{{ url_for('view_post', post_id=comment.post_id) }}" target="_blank" style="color: #3498db; text-decoration: none;">
+                    {{ comment.post_title[:20] }}{% if comment.post_title|length > 20 %}...{% endif %}
+                </a>
+            </td>
+            <td>{{ comment.created_at[:16] if comment.created_at else '未知' }}</td>
+            <td>
+                <span style="padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; background: {% if comment.is_deleted %}#fee2e2{% else %}#dcfce7{% endif %}; color: {% if comment.is_deleted %}#ef4444{% else %}#22c55e{% endif %};">
+                    {% if comment.is_deleted %}已删除{% else %}正常{% endif %}
+                </span>
+            </td>
+            <td>
+                <button onclick="deleteComment({{ comment.id }}, this)" 
+                        class="btn btn-danger" 
+                        style="padding: 4px 10px; font-size: 0.8rem;">
+                    🗑️ 删除
+                </button>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="7" style="text-align: center; padding: 40px; color: #95a5a6;">
+                暂无评论数据
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if comments %}
+<div style="display: flex; justify-content: center; gap: 20px; margin-top: 30px; align-items: center;">
+    {% if page > 1 %}
+        <a href="?page={{ page - 1 }}" class="btn btn-primary">← 上一页</a>
+    {% endif %}
+    
+    <span style="color: #7f8c8d; font-size: 0.95rem;">
+        第 {{ page }} / {{ ((total + per_page - 1) / per_page)|int }} 页
+    </span>
+    
+    {% if page * per_page < total %}
+        <a href="?page={{ page + 1 }}" class="btn btn-primary">下一页 →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+async function deleteComment(commentId, button) {
+    if (!confirm('确定要删除这条评论吗？此操作不可恢复！')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/comments/${commentId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // 找到当前行并添加删除动画
+            const row = button.closest('tr');
+            row.style.transition = 'all 0.3s';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(100%)';
+            
+            setTimeout(() => {
+                row.remove();
+                
+                // 检查是否还有评论
+                const tbody = row.parentElement;
+                if (tbody.children.length === 0) {
+                    location.reload();
+                }
+            }, 300);
+            
+            // 显示成功提示
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success';
+            alertDiv.style.cssText = 'background: #dcfce7; color: #22c55e; padding: 12px; border-radius: 4px; margin-bottom: 15px;';
+            alertDiv.textContent = '评论删除成功！';
+            
+            const contentCard = document.querySelector('.content-card');
+            contentCard.insertBefore(alertDiv, contentCard.firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        } else {
+            alert('删除失败：' + (data.message || '未知错误'));
+        }
+    } catch (error) {
+        console.error('删除评论失败:', error);
+        alert('删除失败，请重试！');
+    }
+}
+</script>
+
+<style>
+.alert {
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+</style>
+{% endblock %}

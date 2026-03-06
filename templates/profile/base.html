@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}个人中心 - 极客博客{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- 左侧导航 -->
+    <aside class="profile-sidebar">
+        <div class="profile-user-card">
+            <div class="avatar">
+                <span>👤</span>
+            </div>
+            <h3 class="username">{{ user_info.username }}</h3>
+            {% if user_info.nickname %}
+                <p class="nickname">{{ user_info.nickname }}</p>
+            {% endif %}
+            <p class="member-since">
+                注册于 {{ user_info.created_at[:10] if user_info.created_at else '未知' }}
+            </p>
+        </div>
+        
+        <nav class="profile-menu">
+            <a href="{{ url_for('user_profile') }}" 
+               class="menu-item {% if request.endpoint == 'user_profile' %}active{% endif %}">
+                📝 个人资料
+            </a>
+            <a href="{{ url_for('user_posts') }}" 
+               class="menu-item {% if request.endpoint == 'user_posts' %}active{% endif %}">
+                📄 我的文章
+            </a>
+            <a href="{{ url_for('user_comments') }}" 
+               class="menu-item {% if request.endpoint == 'user_comments' %}active{% endif %}">
+                💬 我的评论
+            </a>
+            <a href="{{ url_for('index') }}" class="menu-item">
+                🏠 返回首页
+            </a>
+        </nav>
+    </aside>
+    
+    <!-- 主内容区 -->
+    <main class="profile-main">
+        {% block profile_content %}{% endblock %}
+    </main>
+</div>
+
+<style>
+.profile-container {
+    display: flex;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.profile-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.profile-user-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 25px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 3rem;
+    color: #fff;
+}
+
+.username {
+    font-size: 1.3rem;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.nickname {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+.member-since {
+    color: #95a5a6;
+    font-size: 0.85rem;
+}
+
+.profile-menu {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.profile-menu .menu-item {
+    display: block;
+    padding: 14px 20px;
+    color: #34495e;
+    text-decoration: none;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.profile-menu .menu-item:hover {
+    background: #f8f9fa;
+}
+
+.profile-menu .menu-item.active {
+    background: #e3f2fd;
+    color: #2196f3;
+    border-left-color: #2196f3;
+}
+
+.profile-main {
+    flex: 1;
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .profile-container {
+        flex-direction: column;
+    }
+    
+    .profile-sidebar {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

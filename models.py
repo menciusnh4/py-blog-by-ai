@@ -28,7 +28,9 @@ class Database:
                 is_active BOOLEAN DEFAULT TRUE,
                 register_ip TEXT,
                 last_login_ip TEXT,
-                last_login_at TIMESTAMP
+                last_login_at TIMESTAMP,
+                nickname TEXT,
+                bio TEXT
             )
         ''')
         
@@ -56,6 +58,7 @@ class Database:
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 view_count INTEGER DEFAULT 0,
                 is_pinned BOOLEAN DEFAULT FALSE,
+                allow_comments BOOLEAN DEFAULT TRUE,
                 FOREIGN KEY (user_id) REFERENCES users (id)
             )
         ''')
@@ -202,13 +205,13 @@ class Database:
         conn.commit()
         conn.close()
     
-    def create_post(self, title, content, author='匿名', user_id=None):
+    def create_post(self, title, content, author='匿名', user_id=None, allow_comments=True):
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO posts (title, content, author, user_id)
-            VALUES (?, ?, ?, ?)
-        ''', (title, content, author, user_id))
+            INSERT INTO posts (title, content, author, user_id, allow_comments)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (title, content, author, user_id, allow_comments))
         conn.commit()
         post_id = cursor.lastrowid
         conn.close()
@@ -699,6 +702,127 @@ class Database:
         affected = cursor.rowcount
         conn.close()
         return affected > 0
+    
+    # ========== 个人中心相关方法 ==========
+    
+    def get_user_profile(self, user_id):
+        """获取用户资料"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id, username, email, nickname, bio, created_at, is_admin
+            FROM users
+            WHERE id = ?
+        ''', (user_id,))
+        user = cursor.fetchone()
+        conn.close()
+        return dict(user) if user else None
+    
+    def update_user_profile(self, user_id, nickname, bio):
+        """更新用户资料"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE users
+            SET nickname = ?, bio = ?
+            WHERE id = ?
+        ''', (nickname, bio, user_id))
+        conn.commit()
+        affected = cursor.rowcount
+        conn.close()
+        return affected > 0
+    
+    def get_user_posts(self, user_id, page=1, per_page=10):
+        """获取用户的文章列表"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        offset = (page - 1) * per_page
+        cursor.execute('''
+            SELECT p.*, u.username as author_name
+            FROM posts p
+            LEFT JOIN users u ON p.user_id = u.id
+            WHERE p.user_id = ?
+            ORDER BY p.created_at DESC
+            LIMIT ? OFFSET ?
+        ''', (user_id, per_page, offset))
+        posts = cursor.fetchall()
+        conn.close()
+        return [dict(post) for post in posts]
+    
+    def get_user_post_count(self, user_id):
+        """获取用户文章总数"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM posts WHERE user_id = ?', (user_id,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
+    def get_user_comments(self, user_id, page=1, per_page=20):
+        """获取用户的评论列表"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        offset = (page - 1) * per_page
+        cursor.execute('''
+            SELECT c.*, p.title as post_title, p.id as post_id,
+                   u.username as reply_to_username
+            FROM comments c
+            JOIN posts p ON c.post_id = p.id
+            LEFT JOIN comments parent_comment ON c.parent_id = parent_comment.id
+            LEFT JOIN users u ON parent_comment.user_id = u.id
+            WHERE c.user_id = ?
+            ORDER BY c.created_at DESC
+            LIMIT ? OFFSET ?
+        ''', (user_id, per_page, offset))
+        comments = cursor.fetchall()
+        conn.close()
+        return [dict(comment) for comment in comments]
+    
+    def get_user_comment_count(self, user_id):
+        """获取用户评论总数"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM comments WHERE user_id = ?', (user_id,))
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
+    def get_all_comments(self, page=1, per_page=20):
+        """获取所有评论列表（后台管理用）"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        offset = (page - 1) * per_page
+        cursor.execute('''
+            SELECT c.*, u.username as author_name, p.title as post_title, p.id as post_id
+            FROM comments c
+            JOIN users u ON c.user_id = u.id
+            JOIN posts p ON c.post_id = p.id
+            ORDER BY c.created_at DESC
+            LIMIT ? OFFSET ?
+        ''', (per_page, offset))
+        comments = cursor.fetchall()
+        conn.close()
+        return [dict(comment) for comment in comments]
+    
+    def get_comment_count(self):
+        """获取评论总数"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT COUNT(*) FROM comments')
+        count = cursor.fetchone()[0]
+        conn.close()
+        return count
+    
+    def get_comment_by_id(self, comment_id):
+        """根据 ID 获取评论"""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM comments WHERE id = ?
+        ''', (comment_id,))
+        comment = cursor.fetchone()
+        conn.close()
+        return dict(comment) if comment else None
 
 # 初始化数据库
 db = Database()

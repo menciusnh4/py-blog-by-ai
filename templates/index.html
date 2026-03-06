@@ -55,17 +55,6 @@
                 <button class="btn btn-small like-btn {% if post.has_liked %}liked{% endif %}" data-post-id="{{ post.id }}" {% if post.has_liked %}style="background: linear-gradient(45deg, #ff4757, #ff3742);"{% endif %}>
                     ❤️ <span class="like-count">{{ post.like_count }}</span>
                 </button>
-                {% if current_user is not none %}
-                    {% set user_id = current_user.id %}
-                    {% if post.user_id is not none and post.user_id == user_id or current_user.is_admin %}
-                        <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn btn-small btn-secondary">
-                            ✏️ 编辑
-                        </a>
-                        <a href="{{ url_for('delete_post', post_id=post.id) }}" class="btn btn-small btn-danger" onclick="return confirm('确定要删除这篇超酷的文章吗？')">
-                            🗑️ 删除
-                        </a>
-                    {% endif %}
-                {% endif %}
             </div>
         </article>
         {% endfor %}
@@ -154,18 +143,6 @@ function loadMorePosts() {
                             ❤️ <span class="like-count">${post.like_count || 0}</span>
                         </button>
                     `;
-                    
-                    // 如果有权限编辑，添加编辑和删除按钮
-                    if (data.current_user && post.can_edit) {
-                        actionButtons += `
-                            <a href="/edit/${post.id}" class="btn btn-small btn-secondary">
-                                ✏️ 编辑
-                            </a>
-                            <a href="/delete/${post.id}" class="btn btn-small btn-danger" onclick="return confirm('确定要删除这篇超酷的文章吗？')">
-                                🗑️ 删除
-                            </a>
-                        `;
-                    }
                     
                     article.innerHTML = `
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">

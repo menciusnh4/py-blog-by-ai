@@ -17,7 +17,7 @@
         
         <div class="form-group">
             <label for="author">✍️ 作者昵称</label>
-            <input type="text" id="author" name="author" placeholder="想用什么名字？" value="极客">
+            <input type="text" id="author" name="author" placeholder="想用什么名字？" value="{{ default_author }}">
         </div>
         
         <div class="form-group">
@@ -32,9 +32,19 @@
                     <span id="char-count">0</span> 字符
                 </div>
                 <div>
-                    预估阅读时长: <span id="read-time">0</span> 分钟
+                    预估阅读时长：<span id="read-time">0</span> 分钟
                 </div>
             </div>
+        </div>
+                
+        <div class="form-group">
+            <label style="display: flex; align-items: center; cursor: pointer;">
+                <input type="checkbox" id="allow-comments" name="allow_comments" checked style="width: auto; margin-right: 10px;">
+                <span>💬 允许评论</span>
+            </label>
+            <p style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 5px;">
+                ℹ️ 如果关闭，访客将无法在此文章下发表评论
+            </p>
         </div>
         
         <div class="form-actions">

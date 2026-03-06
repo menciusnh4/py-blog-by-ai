@@ -415,6 +415,10 @@
                    class="menu-item {% if request.endpoint == 'admin_footer_links' %}active{% endif %}">
                     🔗 底部导航
                 </a>
+                <a href="{{ url_for('admin_comments') }}" 
+                   class="menu-item {% if request.endpoint == 'admin_comments' %}active{% endif %}">
+                    💬 评论管理
+                </a>
             </nav>
         </aside>
 

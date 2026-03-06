@@ -460,6 +460,7 @@ def create_post():
         title = request.form['title']
         content = request.form['content']
         author = request.form.get('author', '匿名')
+        allow_comments = request.form.get('allow_comments') == 'on'  # 获取评论开关
         
         if not title or not content:
             flash('标题和内容不能为空！')
@@ -467,12 +468,18 @@ def create_post():
             return render_template('create.html', current_user=current_user)
         
         current_user = get_current_user()
-        post_id = db.create_post(title, content, author, current_user['id'])
+        post_id = db.create_post(title, content, author, current_user['id'], allow_comments=allow_comments)
         flash('文章创建成功！')
         return redirect(url_for('view_post', post_id=post_id))
     
     current_user = get_current_user()
-    return render_template('create.html', current_user=current_user)
+    # 获取用户资料，默认使用昵称
+    user_info = db.get_user_profile(current_user['id'])
+    default_author = user_info.get('nickname') if user_info and user_info.get('nickname') else current_user['username']
+    
+    return render_template('create.html', 
+                         current_user=current_user,
+                         default_author=default_author)
 
 @app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
 @require_login
@@ -502,7 +509,7 @@ def edit_post(post_id):
     
     return render_template('edit.html', post=post, current_user=current_user)
 
-@app.route('/delete/<int:post_id>')
+@app.route('/delete/<int:post_id>', methods=['POST'])
 @require_login
 def delete_post(post_id):
     post = db.get_post_by_id(post_id)
@@ -511,13 +518,13 @@ def delete_post(post_id):
         current_user = get_current_user()
         if post['user_id'] != current_user['id'] and not current_user.get('is_admin'):
             flash('您没有权限删除这篇文章！')
-            return redirect(url_for('view_post', post_id=post_id))
+            return redirect(url_for('user_posts'))
             
         db.delete_post(post_id)
         flash('文章删除成功！')
     else:
         flash('文章不存在！')
-    return redirect(url_for('index'))
+    return redirect(url_for('user_posts'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -673,6 +680,24 @@ def admin_footer_links():
                          current_user=current_user,
                          links=links)
 
+@app.route('/admin/comments')
+@require_admin
+def admin_comments():
+    """评论管理"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    current_user = get_current_user()
+    
+    comments = db.get_all_comments(page, per_page)
+    total = db.get_comment_count()
+    
+    return render_template('admin_new/comments.html',
+                         current_user=current_user,
+                         comments=comments,
+                         page=page,
+                         per_page=per_page,
+                         total=total)
+
 @app.route('/admin/footer-links/create', methods=['POST'])
 @require_admin
 def admin_create_footer_link():
@@ -720,6 +745,106 @@ def logout():
     response.set_cookie('session_token', '', expires=0)
     flash('已成功退出登录！')
     return response
+
+# ========== 个人中心相关路由 ==========
+
+@app.route('/profile')
+def user_profile():
+    """个人中心首页"""
+    current_user = get_current_user()
+    if not current_user:
+        flash('请先登录！')
+        return redirect(url_for('login'))
+    
+    # 获取用户信息
+    user_info = db.get_user_profile(current_user['id'])
+    
+    return render_template('profile/index.html', 
+                         current_user=current_user,
+                         user_info=user_info)
+
+@app.route('/profile/update', methods=['POST'])
+def update_profile():
+    """更新个人资料"""
+    current_user = get_current_user()
+    if not current_user:
+        return 'Unauthorized', 401
+    
+    nickname = request.form.get('nickname', '').strip()
+    bio = request.form.get('bio', '').strip()
+    
+    # 更新用户资料
+    db.update_user_profile(current_user['id'], nickname, bio)
+    flash('个人资料已更新！')
+    
+    return redirect(url_for('user_profile'))
+
+@app.route('/profile/posts')
+def user_posts():
+    """我的文章"""
+    current_user = get_current_user()
+    if not current_user:
+        flash('请先登录！')
+        return redirect(url_for('login'))
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    
+    posts = db.get_user_posts(current_user['id'], page, per_page)
+    total = db.get_user_post_count(current_user['id'])
+    user_info = db.get_user_profile(current_user['id'])
+    
+    return render_template('profile/posts.html',
+                         current_user=current_user,
+                         user_info=user_info,
+                         posts=posts,
+                         page=page,
+                         per_page=per_page,
+                         total=total)
+
+@app.route('/profile/comments')
+def user_comments():
+    """我的评论"""
+    current_user = get_current_user()
+    if not current_user:
+        flash('请先登录！')
+        return redirect(url_for('login'))
+    
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    
+    comments = db.get_user_comments(current_user['id'], page, per_page)
+    total = db.get_user_comment_count(current_user['id'])
+    user_info = db.get_user_profile(current_user['id'])
+    
+    return render_template('profile/comments.html',
+                         current_user=current_user,
+                         user_info=user_info,
+                         comments=comments,
+                         page=page,
+                         per_page=per_page,
+                         total=total)
+
+@app.route('/profile/comments/<int:comment_id>/delete', methods=['POST'])
+def delete_user_comment(comment_id):
+    """删除自己的评论"""
+    current_user = get_current_user()
+    if not current_user:
+        return 'Unauthorized', 401
+    
+    # 验证评论是否属于当前用户
+    comment = db.get_comment_by_id(comment_id)
+    if not comment or comment['user_id'] != current_user['id']:
+        return 'Forbidden', 403
+    
+    # 获取文章 ID 用于跳转
+    post_id = comment['post_id']
+    
+    # 删除评论
+    db.delete_comment(comment_id)
+    flash('评论已删除！')
+    
+    return redirect(url_for('user_comments'))
 
 @app.context_processor
 def inject_globals():
