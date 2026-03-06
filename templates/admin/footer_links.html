@@ -5,21 +5,21 @@
 
 {% block admin_content %}
 <!-- 添加新链接 -->
-<div class="add-link-form">
-    <h3>➕ 添加新链接</h3>
+<div class="form-section">
+    <h4 style="margin-bottom: 15px; color: #2c3e50;">➕ 添加新链接</h4>
     <form method="POST" action="{{ url_for('admin_create_footer_link') }}">
-        <div class="form-row">
+        <div class="form-row-inline">
             <input type="text" name="link_text" placeholder="显示文本（如：关于我们）" required 
-                   style="flex: 1; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff;">
+                   class="form-control" style="flex: 1;">
             <input type="url" name="url" placeholder="URL 地址" required 
-                   style="flex: 2; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff;">
-            <label style="display: flex; align-items: center; gap: 5px; color: rgba(255,255,255,0.8);">
+                   class="form-control" style="flex: 2;">
+            <label style="display: flex; align-items: center; gap: 5px; white-space: nowrap;">
                 <input type="checkbox" name="new_tab" style="width: auto;">
                 新窗口打开
             </label>
             <input type="number" name="sort_order" placeholder="排序" value="0" min="0"
-                   style="width: 80px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 5px; color: #fff;">
-            <button type="submit" class="btn">添加</button>
+                   class="form-control" style="width: 80px;">
+            <button type="submit" class="btn btn-success">添加</button>
         </div>
     </form>
 </div>
@@ -27,16 +27,16 @@
 <!-- 链接列表 -->
 <div class="links-list">
     {% for link in links %}
-    <div class="link-card {% if not link.is_active %}inactive{% endif %}">
+    <div class="link-item {% if not link.is_active %}inactive{% endif %}">
         <div class="link-info">
             <strong>{{ link.link_text }}</strong>
-            <span style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">→ {{ link.url }}</span>
+            <span style="color: #95a5a6; font-size: 0.9rem;">→ {{ link.url }}</span>
             {% if link.new_tab %}
-                <span class="badge">新窗口</span>
+                <span class="label label-info">新窗口</span>
             {% endif %}
-            <span class="badge">排序：{{ link.sort_order }}</span>
+            <span class="label label-default">排序：{{ link.sort_order }}</span>
             {% if not link.is_active %}
-                <span class="badge badge-disabled">未激活</span>
+                <span class="label label-danger">未激活</span>
             {% endif %}
         </div>
         <div class="link-actions">
@@ -46,7 +46,7 @@
                 <input type="hidden" name="new_tab" value="{{ 'on' if link.new_tab }}">
                 <input type="hidden" name="sort_order" value="{{ link.sort_order }}">
                 <input type="hidden" name="is_active" value="{{ 'on' if link.is_active }}">
-                <button type="submit" class="btn btn-sm">
+                <button type="submit" class="btn btn-sm {% if link.is_active %}btn-danger{% else %}btn-success{% endif %}">
                     {{ '启用' if link.is_active else '禁用' }}
                 </button>
             </form>
@@ -60,22 +60,31 @@
 </div>
 
 <style>
-.add-link-form {
-    background: rgba(255, 255, 255, 0.05);
+.form-section {
+    background: #fff;
     padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 25px;
 }
 
-.add-link-form h3 {
-    color: #fff;
-    margin-bottom: 15px;
-}
-
-.form-row {
+.form-row-inline {
     display: flex;
     gap: 10px;
     align-items: center;
+}
+
+.form-control {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
 }
 
 .links-list {
@@ -84,19 +93,19 @@
     gap: 10px;
 }
 
-.link-card {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 15px;
-    border-radius: 8px;
+.link-item {
+    background: #fff;
+    padding: 15px 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.link-card.inactive {
-    opacity: 0.6;
-    border-color: rgba(255, 255, 255, 0.05);
+.link-item.inactive {
+    opacity: 0.7;
+    border-color: #f0f0f0;
 }
 
 .link-info {
@@ -104,31 +113,23 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    color: rgba(255, 255, 255, 0.8);
+    color: #34495e;
 }
 
 .link-info strong {
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.label-info {
+    background: #17a2b8;
     color: #fff;
-    font-size: 1.1rem;
-}
-
-.badge {
-    display: inline-block;
-    padding: 3px 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.badge-disabled {
-    background: rgba(255, 71, 87, 0.2);
-    color: #ff4757;
 }
 
 .link-actions {
     display: flex;
     gap: 10px;
+    flex-shrink: 0;
 }
 </style>
 {% endblock %}
