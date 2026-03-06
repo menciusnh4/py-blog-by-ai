@@ -39,11 +39,13 @@ app = Flask(__name__)
 app.secret_key = 'your-secret-key-here-change-in-production'
 
 def get_current_user():
-    """获取当前登录用户"""
+    """获取当前登录用户（返回字典）"""
     session_token = session.get('session_token')
     if session_token:
         user = db.verify_session(session_token)
-        return user
+        # 将 sqlite3.Row 转换为字典
+        if user:
+            return dict(user)
     return None
 
 def require_login(f):

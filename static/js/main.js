@@ -418,6 +418,11 @@ function renderComments(comments) {
 function renderComment(comment, isReply = false) {
     const replies = comment.replies || [];
     
+    // 判断当前用户是否有删除权限
+    const currentUserId = window.currentUserId;
+    const isAdmin = window.isAdmin;
+    const canDelete = currentUserId && (parseInt(comment.user_id) === parseInt(currentUserId) || isAdmin);
+    
     return `
         <div class="comment-item ${isReply ? 'comment-reply' : ''}" id="comment-${comment.id}">
             <div class="comment-avatar">
@@ -434,7 +439,9 @@ function renderComment(comment, isReply = false) {
                     <button class="btn-reply" onclick="showReplyForm(${comment.id}, '${escapeHtml(comment.username)}')">
                         💬 回复
                     </button>
+                    ${canDelete ? `
                     <button class="btn-delete" data-comment-id="${comment.id}" data-user-id="${comment.user_id}" onclick="checkDeletePermission(this)">🗑️ 删除</button>
+                    ` : ''}
                 </div>
                 
                 <!-- 回复表单（隐藏） -->
@@ -522,6 +529,8 @@ async function submitReply(parentCommentId, postId) {
 
 // 删除评论
 async function deleteComment(commentId, postId) {
+    console.log('准备删除评论:', { commentId, postId });
+    
     if (!confirm('确定要删除这条评论吗？')) {
         return;
     }
@@ -531,9 +540,13 @@ async function deleteComment(commentId, postId) {
             method: 'DELETE'
         });
         
+        console.log('删除评论响应:', response.status);
+        
         const data = await response.json();
+        console.log('删除评论结果:', data);
         
         if (data.success) {
+            alert('评论已删除');
             loadComments(postId);
         } else {
             alert(data.message || '删除失败');
@@ -549,16 +562,32 @@ function checkDeletePermission(button) {
     const commentId = button.getAttribute('data-comment-id');
     const commentUserId = button.getAttribute('data-user-id');
     
-    // 从全局变量或通过 API 获取当前用户信息
+    // 从全局变量获取当前用户信息
     const currentUserId = window.currentUserId;
     const isAdmin = window.isAdmin;
     
-    if (commentUserId == currentUserId || isAdmin) {
-        const postId = button.closest('.post-detail')?.querySelector('[data-post-id]')?.getAttribute('data-post-id');
+    console.log('检查删除权限:', {
+        commentId,
+        commentUserId,
+        currentUserId,
+        isAdmin
+    });
+    
+    // 类型转换后比较
+    if (parseInt(commentUserId) === parseInt(currentUserId) || isAdmin) {
+        // 从页面中获取文章 ID
+        const likeBtn = document.querySelector('[data-post-id]');
+        const postId = likeBtn ? likeBtn.getAttribute('data-post-id') : null;
+        
+        console.log('文章 ID:', postId);
+        
         if (postId) {
             deleteComment(commentId, postId);
+        } else {
+            alert('无法获取文章 ID，删除失败');
         }
     } else {
+        console.log('权限不足：评论作者 ID=', commentUserId, '当前用户 ID=', currentUserId);
         alert('您没有权限删除此评论！');
     }
 }
